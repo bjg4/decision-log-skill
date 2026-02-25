@@ -12,7 +12,9 @@ Or manually:
 
 ```bash
 git clone https://github.com/bjg4/decision-log-skill.git /tmp/decision-log-skill
-cp -r /tmp/decision-log-skill/.claude/skills/decision-log ~/.claude/skills/decision-log
+mkdir -p ~/.claude/skills/decision-log
+cp /tmp/decision-log-skill/SKILL.md ~/.claude/skills/decision-log/
+cp -r /tmp/decision-log-skill/references ~/.claude/skills/decision-log/
 ```
 
 ## Usage
