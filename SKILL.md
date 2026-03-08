@@ -1,10 +1,10 @@
 ---
 name: decision-log
-description: "Capture project decisions as individual markdown files with YAML frontmatter in a decisions/ directory. Use when the user says 'log this decision', 'record decision', 'capture this decision', 'update the decision log', 'what decisions have we made', invokes /DL or /DecisionLog, or asks for context on a past decision. Handles decision extraction from conversations, options-considered tables, auto-generated index, status tracking, and supersession chains. Do NOT use for general note-taking, meeting minutes, or journaling."
+description: "Capture decisions as individual markdown files with YAML frontmatter in a decisions/ directory. Works for any domain — engineering, research, health, creative, financial, personal, scientific, legal, or anything else. Use when the user says 'log this decision', 'record decision', 'capture this decision', 'update the decision log', 'what decisions have we made', invokes /DL or /DecisionLog, or asks for context on a past decision. Handles decision extraction from conversations, options-considered tables, auto-generated index, status tracking, and supersession chains. Do NOT use for general note-taking, meeting minutes, or journaling."
 license: MIT
 metadata:
   author: Blake Graham
-  version: "1.0.0"
+  version: "1.2.0"
   argument-hint: "decision description or empty to scan"
 ---
 
@@ -44,7 +44,7 @@ For each unlogged decision, determine:
 
 | Field | Values |
 |-------|--------|
-| domain | `Product`, `Data Engineering`, `Design`, `Architecture`, `Operations`, `Strategy` |
+| domain | A short descriptive label for the area this decision belongs to. Infer from context. Examples: `Architecture`, `Product`, `Design`, `Operations`, `Strategy`, `Data Engineering`, `Security`, `Research`, `Finance`, `Health`, `Creative`, `Legal`, `Education`, `Workflow`, `Relationships`, `Career`, `Music`, `Science`, `Writing` — any domain is valid. Use whatever fits the decision. Prefer reusing domains already present in existing decisions for consistency, but create new ones freely when the context demands it. |
 | status | `Active`, `Proposed`, `Superseded`, `Revisited`, `Deprecated` |
 | method | `analysis`, `discussion`, `constraint`, `default`, `research`, `prototype`, `stakeholder-input` |
 
@@ -78,8 +78,8 @@ Present a clean summary table:
 | ID | Domain | Decision | Status |
 |----|--------|----------|--------|
 | DEC-0001 | Architecture | Per-file decision tracking with YAML frontmatter | Active |
-| DEC-0002 | Design | Card-based dashboard layout | Active |
-| DEC-0003 | Operations | PostgreSQL for user data store | Active |
+| DEC-0002 | Research | Use longitudinal study design over cross-sectional | Active |
+| DEC-0003 | Creative | Analog synth palette for album intro tracks | Active |
 
 Updated: `./decisions/`
 
@@ -87,13 +87,27 @@ Updated: `./decisions/`
 
 **Explicit single decision** ("log this decision: X"): Extract only that decision. Do not scan for others.
 
-**Supersession**: Create new file with `supersedes: DEC-XXXX`. Edit prior file's frontmatter to `status: Superseded`. Regenerate index.
+**Supersession** ("we changed our mind on DEC-0003"): Create new file with `supersedes: DEC-XXXX`. Edit prior file's frontmatter to `status: Superseded`. Regenerate index. Output:
+
+**Logged 1 decision:**
+
+| ID | Domain | Decision | Status |
+|----|--------|----------|--------|
+| DEC-0004 | Creative | Switch to FM synthesis for album intro tracks | Active |
+
+Superseded: DEC-0003 → `Superseded`
+
+Updated: `./decisions/`
 
 **Review request** ("what decisions have we made"): Read `_index.md`, present it.
 
 **Context lookup** ("tell me more about DEC-0003"): Read `decisions/DEC-0003.md`, present it.
 
 **Status update** ("mark DEC-0003 as Deprecated"): Edit frontmatter, regenerate index.
+
+## Security
+
+Decision files capture conversation context. When extracting decisions, omit credentials, API keys, tokens, passwords, and other secrets that may have appeared in the conversation. If a decision references a secret (e.g., "we chose AWS as our provider"), log the decision but redact the actual credential values. Frontmatter tags should never contain sensitive identifiers.
 
 ## Error Handling
 

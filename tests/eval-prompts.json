@@ -1,0 +1,71 @@
+[
+  {
+    "id": "trigger-explicit",
+    "prompt": "log this decision: we're using PostgreSQL for the database because it has better JSON support than MySQL and our team already knows it well. We also considered SQLite but it won't scale for our multi-user needs.",
+    "assertions": [
+      "Output mentions creating a DEC-XXXX.md file",
+      "Output includes a summary table with ID, Domain, Decision, Status columns",
+      "Decision references PostgreSQL",
+      "Options Considered includes MySQL and SQLite",
+      "Does not ask for confirmation before proceeding"
+    ]
+  },
+  {
+    "id": "trigger-slash-command",
+    "prompt": "We just had a discussion and decided to use Tailwind CSS over Bootstrap because it gives us more design flexibility. We also considered vanilla CSS but maintenance would be harder. /DL",
+    "assertions": [
+      "Scans conversation for the Tailwind decision",
+      "Creates a decision file",
+      "Shows summary table",
+      "Captures the options considered"
+    ]
+  },
+  {
+    "id": "trigger-natural-language",
+    "prompt": "After researching for weeks, we've decided to adopt a microservices architecture instead of our current monolith. The main driver was that our team is growing to 30 engineers and we need independent deployability. We considered modular monolith and serverless too. Can you capture the decisions from this conversation?",
+    "assertions": [
+      "Extracts the architecture decision",
+      "Domain relates to Architecture",
+      "Method should be research",
+      "Shows summary table"
+    ]
+  },
+  {
+    "id": "trigger-review",
+    "prompt": "what decisions have we made so far?",
+    "assertions": [
+      "Attempts to read an index or decisions directory",
+      "Does not create new files",
+      "Presents existing decisions or states none found"
+    ]
+  },
+  {
+    "id": "trigger-non-engineering",
+    "prompt": "log this decision: after consulting with my doctor, I've decided to switch from medication A to medication B for managing my condition. The rationale is fewer side effects and better long-term outcomes based on recent studies. We considered staying on medication A and also tried a lifestyle-only approach.",
+    "assertions": [
+      "Creates a decision file",
+      "Domain is Health or Medical, not forced into an engineering domain",
+      "Options Considered includes medication A, medication B, and lifestyle approach",
+      "Does not ask for confirmation"
+    ]
+  },
+  {
+    "id": "trigger-creative",
+    "prompt": "record decision: for the album we're producing, we decided to use analog tape recording for the drum tracks instead of digital. The warmth and saturation are worth the extra cost. We also considered hybrid approaches and fully digital workflows.",
+    "assertions": [
+      "Creates a decision file",
+      "Domain is Creative or Music, not forced into an engineering domain",
+      "Captures the analog vs digital options",
+      "Shows summary table"
+    ]
+  },
+  {
+    "id": "non-trigger-notes",
+    "prompt": "take notes from today's standup meeting: Sarah reported the auth bug is fixed, Mike is working on the dashboard, and Lisa needs help with the API integration.",
+    "assertions": [
+      "Does NOT create decision files",
+      "Does NOT treat meeting updates as decisions",
+      "Responds as general note-taking or declines"
+    ]
+  }
+]

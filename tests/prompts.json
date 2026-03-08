@@ -1,0 +1,85 @@
+{
+  "should_trigger": [
+    {
+      "prompt": "log this decision: we're using PostgreSQL for the database",
+      "assertions": [
+        "Creates a DEC-XXXX.md file in decisions/",
+        "Frontmatter includes domain, status, method fields",
+        "Decision section mentions PostgreSQL",
+        "Does not ask for confirmation before writing"
+      ]
+    },
+    {
+      "prompt": "/DL",
+      "assertions": [
+        "Scans conversation for unlogged decisions",
+        "Creates decision files without prompting",
+        "Regenerates _index.md",
+        "Shows summary table"
+      ]
+    },
+    {
+      "prompt": "what decisions have we made so far?",
+      "assertions": [
+        "Reads _index.md or decisions/ directory",
+        "Presents existing decisions in table format",
+        "Does not create new files"
+      ]
+    },
+    {
+      "prompt": "record this decision — we chose Tailwind over Bootstrap for the CSS framework",
+      "assertions": [
+        "Creates exactly one decision file",
+        "Options Considered table includes both Tailwind and Bootstrap",
+        "Does not scan conversation for additional decisions"
+      ]
+    },
+    {
+      "prompt": "tell me more about DEC-0003",
+      "assertions": [
+        "Reads decisions/DEC-0003.md",
+        "Presents the full decision content",
+        "Does not create or modify files"
+      ]
+    },
+    {
+      "prompt": "we changed our mind on DEC-0002, we're going with a list layout instead",
+      "assertions": [
+        "Creates a new DEC file with supersedes: DEC-0002",
+        "Updates DEC-0002 frontmatter to status: Superseded",
+        "Regenerates _index.md",
+        "Summary shows the supersession"
+      ]
+    },
+    {
+      "prompt": "capture the decisions from this conversation",
+      "assertions": [
+        "Scans full conversation for decisions",
+        "Creates files without asking for confirmation",
+        "Shows summary table of all logged decisions"
+      ]
+    }
+  ],
+  "should_not_trigger": [
+    {
+      "prompt": "take notes from today's standup meeting",
+      "reason": "Meeting notes are explicitly excluded — this is note-taking, not decision logging"
+    },
+    {
+      "prompt": "write a journal entry about what I learned today",
+      "reason": "Journaling is explicitly excluded in the description"
+    },
+    {
+      "prompt": "create a README for my project",
+      "reason": "Document creation unrelated to decision tracking"
+    },
+    {
+      "prompt": "summarize this conversation",
+      "reason": "General summarization, not decision capture"
+    },
+    {
+      "prompt": "help me make a decision about which database to use",
+      "reason": "Helping decide is not the same as logging a decision already made"
+    }
+  ]
+}

@@ -13,7 +13,7 @@ Each decision is a standalone file at `decisions/DEC-XXXX.md`:
 id: DEC-XXXX
 title: "Short Decision Title"
 date: YYYY-MM-DDTHH:MM
-domain: [Product | Data Engineering | Design | Architecture | Operations | Strategy]
+domain: [descriptive label — any domain is valid, e.g. Architecture, Product, Health, Creative, Finance, Research, etc.]
 status: [Active | Proposed | Superseded | Revisited | Deprecated]
 method: [analysis | discussion | constraint | default | research | prototype | stakeholder-input]
 supersedes: null
@@ -82,12 +82,9 @@ schema_version: 1
 last_updated: YYYY-MM-DDTHH:MM
 decision_count: N
 domains:
-  Architecture: N
-  Product: N
-  Design: N
-  Data Engineering: N
-  Operations: N
-  Strategy: N
+  # One entry per domain found in the decision files.
+  # Built dynamically from disk — not a fixed list.
+  DomainName: N
 ---
 
 # Decision Index

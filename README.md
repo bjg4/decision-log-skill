@@ -1,31 +1,32 @@
 # Decision Log
 
-Agent-native decision tracking for Claude Code. Captures decisions with full context, queryable YAML frontmatter, and auto-generated indexing.
+Decision tracking for Claude Code. Captures decisions from any domain with full context, queryable YAML frontmatter, and auto-generated indexing.
+
+Works for engineering, research, health, creative, financial, personal, scientific, legal, or any other context where you want to track decisions over time.
 
 ## Install
 
 ```bash
-npx skills add bjg4/decision-log-skill
+git clone https://github.com/bjg4/decision-log-skill.git ~/.claude/skills/decision-log
 ```
 
-Or manually:
+Or with curl:
 
 ```bash
-git clone https://github.com/bjg4/decision-log-skill.git /tmp/decision-log-skill
 mkdir -p ~/.claude/skills/decision-log
-cp /tmp/decision-log-skill/SKILL.md ~/.claude/skills/decision-log/
-cp -r /tmp/decision-log-skill/references ~/.claude/skills/decision-log/
+cd ~/.claude/skills/decision-log
+curl -sL https://github.com/bjg4/decision-log-skill/archive/refs/heads/main.tar.gz | tar xz --strip-components=1
 ```
 
 ## Usage
 
-Invoke in any project:
+Invoke in any conversation:
 
 ```
 /decision-log
 ```
 
-The skill scans the current conversation, extracts decisions, and writes each one as a standalone markdown file in `decisions/` with YAML frontmatter:
+The skill scans the current conversation, extracts decisions, and writes each one as a standalone markdown file in `decisions/` with YAML frontmatter.
 
 ```
 decisions/
@@ -34,7 +35,7 @@ decisions/
   DEC-0002.md
 ```
 
-Each decision file captures: what was decided, options considered, rationale, expected outcome, method, and full conversation context.
+Each decision captures: what was decided, options considered, rationale, expected outcome, method, and full conversation context.
 
 ### Triggers
 
@@ -43,19 +44,45 @@ Each decision file captures: what was decided, options considered, rationale, ex
 - "what decisions have we made" (reads the index)
 - "tell me more about DEC-0003" (reads a specific decision)
 
+### Example Output
+
+```
+Logged 2 decisions:
+
+| ID | Domain | Decision | Status |
+|----|--------|----------|--------|
+| DEC-0001 | Architecture | Use PostgreSQL as the primary database | Active |
+| DEC-0002 | Music Production | Analog tape recording for drum tracks | Active |
+
+Updated: ./decisions/
+```
+
 ### Querying
 
 Decision files use YAML frontmatter, so they're greppable:
 
 ```bash
 # Find all architecture decisions
-grep -l "domain: Architecture" decisions/DEC-*.md
+grep -rl "domain: Architecture" decisions/
 
 # Find superseded decisions
-grep -l "status: Superseded" decisions/DEC-*.md
+grep -rl "status: Superseded" decisions/
 
 # Find decisions by tag
-grep -l "yaml-frontmatter" decisions/DEC-*.md
+grep -rl "postgresql" decisions/
+```
+
+## Skill Structure
+
+```
+SKILL.md              # Main skill definition
+references/
+  templates.md        # Decision file and index schemas
+tests/
+  prompts.json        # Trigger and non-trigger test prompts
+  eval-prompts.json   # Eval pipeline prompts with assertions
+  eval-summary.md     # Latest evaluation results
+  eval-results/       # Raw eval outputs
 ```
 
 ## License
