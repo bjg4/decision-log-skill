@@ -7,15 +7,25 @@ Works for engineering, research, health, creative, financial, personal, scientif
 ## Install
 
 ```bash
+npx skills add bjg4/decision-log-skill
+```
+
+Or manually:
+
+```bash
 git clone https://github.com/bjg4/decision-log-skill.git ~/.claude/skills/decision-log
 ```
 
-Or with curl:
+## Update
 
 ```bash
-mkdir -p ~/.claude/skills/decision-log
-cd ~/.claude/skills/decision-log
-curl -sL https://github.com/bjg4/decision-log-skill/archive/refs/heads/main.tar.gz | tar xz --strip-components=1
+npx skills add bjg4/decision-log-skill
+```
+
+If you installed via git clone:
+
+```bash
+cd ~/.claude/skills/decision-log && git pull
 ```
 
 ## Usage
