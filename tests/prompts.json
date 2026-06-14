@@ -6,7 +6,8 @@
         "Creates a DEC-XXXX.md file in decisions/",
         "Frontmatter includes domain, status, method fields",
         "Decision section mentions PostgreSQL",
-        "Does not ask for confirmation before writing"
+        "Does not ask for confirmation before writing",
+        "Does not fabricate options or rationale absent from the prompt; notes thin context under Open Questions instead"
       ]
     },
     {
@@ -23,6 +24,7 @@
       "assertions": [
         "Reads _index.jsonl or decisions/ directory",
         "Presents existing decisions in table format",
+        "Scopes to active/relevant decisions rather than reading every DEC-*.md body",
         "Does not create new files"
       ]
     },
