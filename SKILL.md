@@ -1,16 +1,16 @@
 ---
 name: decision-log
-description: "Capture decisions as individual markdown files with YAML frontmatter in a decisions/ directory. Works for any domain — engineering, research, health, creative, financial, personal, scientific, legal, or anything else. Use when the user says 'log this decision', 'record decision', 'capture this decision', 'update the decision log', 'what decisions have we made', invokes /DL or /DecisionLog, or asks for context on a past decision. Handles decision extraction from conversations, options-considered tables, auto-generated index, status tracking, and supersession chains. Do NOT use for general note-taking, meeting minutes, or journaling."
+description: "Capture already-made decisions as individual markdown files with YAML frontmatter in a decisions/ directory, indexed by an append-only decisions/_index.jsonl. Works for any domain — engineering, research, health, creative, financial, personal, scientific, legal, or anything else. Use ONLY when the user explicitly asks to log, record, or capture a decision, update the decision log, review logged decisions ('what decisions have we made'), look up a specific DEC-XXXX, or invokes /DL, /DecisionLog, or /decision-log. Handles decision extraction from conversations, options-considered tables, auto-generated index, status tracking, and supersession chains. Do NOT use for general note-taking, meeting minutes, journaling, brainstorming, or helping the user make a decision that has not been settled yet."
 license: MIT
 metadata:
   author: Blake Graham
-  version: "1.2.0"
+  version: "1.3.0"
   argument-hint: "decision description or empty to scan"
 ---
 
 # Decision Log Skill
 
-Maintain a `decisions/` directory where each decision is a standalone markdown file with YAML frontmatter. An `_index.md` manifest is regenerated on every invocation for fast scanning.
+Maintain a `decisions/` directory where each decision is a standalone markdown file with YAML frontmatter. An append-only `_index.jsonl` manifest is updated incrementally — one JSON record per decision — so logging never requires re-reading every decision file.
 
 ## Critical Behavior Rule
 
@@ -24,10 +24,12 @@ Maintain a `decisions/` directory where each decision is a standalone markdown f
 
 ```
 decisions/
-  _index.md        # Auto-generated manifest — never hand-edit
-  DEC-0001.md      # One file per decision
+  _index.jsonl     # Append-only manifest, one JSON record per decision — never hand-edit
+  DEC-0001.md      # One file per decision (source of truth)
   DEC-0002.md
 ```
+
+The markdown `DEC-*.md` files are the source of truth. `_index.jsonl` is a fast cache derived from their frontmatter: it is updated incrementally (append on create, in-place line rewrite on status change) and can always be rebuilt from the decision files if missing or corrupt.
 
 ## Instructions
 
@@ -35,8 +37,10 @@ decisions/
 
 1. Check if `decisions/` directory exists. If not, create it.
 2. List existing `DEC-*.md` files to determine the next ID (highest number + 1, zero-padded to 4 digits).
-3. Read `_index.md` if it exists to know which decisions are already logged.
+3. Read `_index.jsonl` if it exists to know which decisions are already logged. Do **not** read every `DEC-*.md` file — the JSONL records carry the id/status/domain needed to assess state. Only read full decision files when the user asks to look one up, or when rebuilding the index (see Step 4).
 4. Scan the current conversation for any decisions not already captured.
+
+**Index consistency check (cheap):** if `_index.jsonl` is missing, or its record count does not match the number of `DEC-*.md` files on disk, rebuild it once from the decision files (read each file's frontmatter, write one JSON line per decision). Otherwise trust the incremental index.
 
 ### Step 2 — Extract and Classify
 
@@ -65,9 +69,15 @@ Also capture: decision statement, options considered (with pros/cons), rationale
 
 Create a file per decision using the schema in [references/templates.md](references/templates.md). File naming: `decisions/DEC-XXXX.md` (zero-padded to 4 digits). Write all files in a single pass.
 
-### Step 4 — Regenerate Index
+### Step 4 — Update Index
 
-Read all `DEC-*.md` files in `decisions/`, extract frontmatter, regenerate `decisions/_index.md` using the index template in [references/templates.md](references/templates.md). The index is always rebuilt from disk — it self-heals.
+Update `decisions/_index.jsonl` incrementally using the JSONL record schema in [references/templates.md](references/templates.md). Do not re-read existing decision files — operate on the records you already have:
+
+- **New decision:** append one JSON record line per newly written decision. No rescan.
+- **Status change / supersession:** rewrite only the affected line(s) in `_index.jsonl` (read the small JSONL file, replace the records whose `id` changed, write it back). The other lines are untouched.
+- **Rebuild (fallback only):** if the consistency check in Step 1 failed, read every `DEC-*.md` frontmatter and write a fresh `_index.jsonl`. This is the only path that reads all decision files, and it should be rare.
+
+Records are append-ordered by id; consumers can sort if needed. Never hand-edit `_index.jsonl`.
 
 ### Step 5 — Show Results
 
@@ -87,7 +97,7 @@ Updated: `./decisions/`
 
 **Explicit single decision** ("log this decision: X"): Extract only that decision. Do not scan for others.
 
-**Supersession** ("we changed our mind on DEC-0003"): Create new file with `supersedes: DEC-XXXX`. Edit prior file's frontmatter to `status: Superseded`. Regenerate index. Output:
+**Supersession** ("we changed our mind on DEC-0003"): Create new file with `supersedes: DEC-XXXX`. Edit prior file's frontmatter to `status: Superseded`. Append the new record and rewrite the superseded record's line in `_index.jsonl`. Output:
 
 **Logged 1 decision:**
 
@@ -99,11 +109,11 @@ Superseded: DEC-0003 → `Superseded`
 
 Updated: `./decisions/`
 
-**Review request** ("what decisions have we made"): Read `_index.md`, present it.
+**Review request** ("what decisions have we made"): Read `_index.jsonl`, render the records as a table in your reply (do not write a file). Use the table format shown in Step 5.
 
 **Context lookup** ("tell me more about DEC-0003"): Read `decisions/DEC-0003.md`, present it.
 
-**Status update** ("mark DEC-0003 as Deprecated"): Edit frontmatter, regenerate index.
+**Status update** ("mark DEC-0003 as Deprecated"): Edit the decision file's frontmatter, then rewrite that record's line in `_index.jsonl`.
 
 ## Security
 
@@ -113,7 +123,7 @@ Decision files capture conversation context. When extracting decisions, omit cre
 
 **No decisions found in conversation:** Tell the user: "No unlogged decisions found in this conversation." Do not create empty files or fabricate decisions.
 
-**Malformed existing DEC file:** If a `DEC-*.md` file has broken frontmatter, skip it during index regeneration and warn: "Skipped DEC-XXXX.md — invalid frontmatter." Do not delete or overwrite it.
+**Malformed existing DEC file:** If a `DEC-*.md` file has broken frontmatter, skip it during an index rebuild and warn: "Skipped DEC-XXXX.md — invalid frontmatter." Do not delete or overwrite it. (A malformed file is also why a consistency check may fail; skipping it keeps the count off by design — note this rather than looping on rebuilds.)
 
 **Ambiguous decision boundary:** When it's unclear whether something is one decision or two, prefer fewer, broader decisions. One well-scoped decision is better than two overlapping ones.
 

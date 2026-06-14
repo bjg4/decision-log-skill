@@ -74,24 +74,29 @@ tags: [tag1, tag2, tag3]
 
 ## Index File Schema
 
-The index at `decisions/_index.md` is regenerated from disk on every skill invocation. Never hand-edit it.
+The index at `decisions/_index.jsonl` is an append-only manifest with **one JSON object per line**, one line per decision. It is updated incrementally (append on create, in-place line rewrite on status change) and is never hand-edited. The `DEC-*.md` files are the source of truth; the JSONL is a fast cache that can be rebuilt from them.
+
+Each line is a compact mirror of that decision's frontmatter:
+
+```jsonl
+{"id":"DEC-0001","date":"YYYY-MM-DDTHH:MM","domain":"Architecture","title":"Short Decision Title","status":"Active","method":"analysis","supersedes":null,"related":[],"tags":["tag1","tag2"]}
+{"id":"DEC-0002","date":"YYYY-MM-DDTHH:MM","domain":"Health","title":"Another Decision","status":"Superseded","method":"stakeholder-input","supersedes":null,"related":["DEC-0003"],"tags":["sleep","routine"]}
+```
+
+Field rules:
+
+- One record per `DEC-*.md` file. `id` is unique and is the key used for in-place rewrites.
+- `supersedes` is a `DEC-XXXX` string or `null`. `related` and `tags` are JSON arrays (may be empty).
+- Records are written in id order; consumers that need another order can sort.
+
+Because every record carries `id`, `domain`, `status`, and `tags`, an agent can understand the whole decision landscape — counts, domains, what's superseded — by reading only this one file, without opening any individual decision. Aggregate counts (per-domain totals, decision count) are computed on demand from the lines rather than stored.
+
+### Rendering a review table
+
+When the user asks to review decisions, read `_index.jsonl` and render the records as a markdown table in the reply (do not persist a file):
 
 ```markdown
----
-schema_version: 1
-last_updated: YYYY-MM-DDTHH:MM
-decision_count: N
-domains:
-  # One entry per domain found in the decision files.
-  # Built dynamically from disk — not a fixed list.
-  DomainName: N
----
-
-# Decision Index
-
 | ID | Date | Domain | Title | Status | Tags |
 |----|------|--------|-------|--------|------|
 | [DEC-XXXX](./DEC-XXXX.md) | YYYY-MM-DD | [domain] | [title] | [status] | [tags] |
 ```
-
-The index frontmatter provides aggregate counts so an agent can understand the decision landscape without reading any individual files.
