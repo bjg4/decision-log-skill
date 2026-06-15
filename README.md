@@ -40,8 +40,8 @@ The skill scans the current conversation, extracts decisions, and writes each on
 
 ```
 decisions/
-  _index.md        # Auto-generated manifest
-  DEC-0001.md      # One file per decision
+  _index.jsonl     # Append-only manifest (one JSON record per decision)
+  DEC-0001.md      # One file per decision (source of truth)
   DEC-0002.md
 ```
 
@@ -80,6 +80,19 @@ grep -rl "status: Superseded" decisions/
 
 # Find decisions by tag
 grep -rl "postgresql" decisions/
+```
+
+The `_index.jsonl` manifest is one JSON record per decision, so you can query the whole log without opening individual files — handy with `jq`:
+
+```bash
+# All active architecture decisions, as a table
+jq -r 'select(.status=="Active" and .domain=="Architecture") | [.id,.title] | @tsv' decisions/_index.jsonl
+
+# Count decisions per domain
+jq -r '.domain' decisions/_index.jsonl | sort | uniq -c
+
+# Everything tagged "postgresql"
+jq -r 'select(.tags | index("postgresql")) | .id' decisions/_index.jsonl
 ```
 
 ## Skill Structure
